@@ -59,13 +59,14 @@ jobs:
     - name: Get description
       shell: bash
       run: |
+        echo NCNN_VERSION=g`git describe --always` >> $GITHUB_ENV
         echo TIME=`date -u +"%y%m%d-%H%M"` >> $GITHUB_ENV
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         files: ncnn-gpu-x64-windows.zip
-        name: Build
-        tag_name: ${{ env.TIME }}
+        name: Build ${{ env.NCNN_VERSION }}
+        tag_name: ${{ env.TIME }}-${{ env.NCNN_VERSION }}
         prerelease: true
 
