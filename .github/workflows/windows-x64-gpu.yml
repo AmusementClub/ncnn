@@ -10,24 +10,15 @@ jobs:
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: cache-protobuf
-      id: cache-protobuf
+    - name: cache-vulkansdk
+      id: cache-vulkansdk
       uses: actions/cache@v3
       with:
-        path: "protobuf-install"
-        key: protobuf-x64-install
-
-    - name: protobuf
-      if: steps.cache-protobuf.outputs.cache-hit != 'true'
-      run: |
-        Invoke-WebRequest -Uri https://github.com/protocolbuffers/protobuf/archive/v3.11.2.zip -OutFile protobuf-3.11.2.zip
-        7z x ./protobuf-3.11.2.zip
-        cd protobuf-3.11.2
-        cmake -S cmake -B build_rel -G Ninja -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_MSVC_STATIC_RUNTIME=ON -DCMAKE_BUILD_TYPE=Release -Dprotobuf_BUILD_SHARED_LIBS=OFF -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
-        cmake --build build_rel --verbose
-        cmake --install build_rel --prefix "$env:GITHUB_WORKSPACE\protobuf-install"
+        path: C:\VulkanSDK\1.2.189.0
+        key: vulkansdk-1.2.189.0
 
     - name: vulkansdk
+      if: steps.cache-vulkansdk.outputs.cache-hit != 'true'
       run: |
         Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.2.189.0/windows/VulkanSDK-1.2.189.0-Installer.exe?Human=true -OutFile VulkanSDK.exe
         $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");
@@ -42,7 +33,7 @@ jobs:
       run: |
         $env:VULKAN_SDK="C:/VulkanSDK/1.2.189.0"
         $env:Path+=";C:/VulkanSDK/1.2.189.0/Bin"
-        cmake -S . -B build -G Ninja -DProtobuf_INCLUDE_DIR="$env:GITHUB_WORKSPACE\protobuf-install\include" -DProtobuf_LIBRARIES="$env:GITHUB_WORKSPACE\protobuf-install\lib\libprotobuf.lib" -DProtobuf_PROTOC_EXECUTABLE="$env:GITHUB_WORKSPACE\protobuf-install\bin\protoc.exe" -DNCNN_VULKAN=ON -DNCNN_BUILD_BENCHMARK=FALSE  -DNCNN_BUILD_EXAMPLES=FALSE -DNCNN_BUILD_TESTS=OFF -DNCNN_BUILD_TOOLS=OFF -DNCNN_OPENMP=FALSE -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DNCNN_ENABLE_LTO=TRUE
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DNCNN_VULKAN=ON -DNCNN_BUILD_BENCHMARK=FALSE -DNCNN_BUILD_EXAMPLES=FALSE -DNCNN_BUILD_TESTS=OFF -DNCNN_BUILD_TOOLS=OFF -DNCNN_OPENMP=FALSE -DNCNN_ENABLE_LTO=TRUE
         cmake --build build --verbose
         cmake --install build --prefix ncnn
 
